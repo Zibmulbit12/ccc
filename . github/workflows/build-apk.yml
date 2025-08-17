@@ -15,41 +15,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Instalacja Node.js
+      # 2. Instalacja Node.js (potrzebne do Capacitor sync)
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      # 3. Instalacja zależności webowych
+      # 3. Instalacja zależności webowych (dla Capacitor)
       - name: Install NPM dependencies
         run: npm install
 
-      # 4. Build projektu Vite
-      - name: Build Vite project
-        run: npm run build
-
-      # 5. Instalacja Capacitor CLI (potrzebne do synchronizacji)
-      - name: Install Capacitor CLI
-        run: npm install @capacitor/cli @capacitor/core --save
-
-      # 6. Synchronizacja folderu web z Androidem
+      # 4. Synchronizacja Capacitor (kopiuje build Vite do Androida)
       - name: Capacitor sync
         run: npx cap sync android
 
-      # 7. Instalacja JDK (wymagane do Gradle)
+      # 5. Instalacja JDK (wymagane do Gradle)
       - name: Setup JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 8. Build APK
+      # 6. Build APK
       - name: Build APK
         working-directory: android
         run: ./gradlew assembleDebug
 
-      # 9. Upload APK jako artifact
+      # 7. Upload APK jako artifact
       - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
