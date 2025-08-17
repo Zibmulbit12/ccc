@@ -1,0 +1,56 @@
+name: Build APK from Vite + Capacitor
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Pobranie repo
+    - uses: actions/checkout@v3
+
+    # Instalacja Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    # Instalacja zależności frontend
+    - name: Install frontend dependencies
+      run: npm install
+
+    # Build Vite
+    - name: Build Vite
+      run: npm run build
+
+    # Instalacja Capacitor CLI
+    - name: Install Capacitor CLI
+      run: npm install @capacitor/core @capacitor/cli
+
+    # Skopiowanie build do Androida
+    - name: Copy build to Android
+      run: npx cap copy android
+
+    # Instalacja JDK 11
+    - name: Setup JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+
+    # Build APK Android
+    - name: Build APK
+      run: |
+        cd android
+        ./gradlew assembleRelease
+
+    # Upload APK jako artefakt
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release.apk
+        path: android/app/build/outputs/apk/release/app-release.apk
