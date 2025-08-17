@@ -1,67 +1,56 @@
-name: Build APK from Vite + Capacitor
+name: Build APK
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
-    # 1️⃣ Pobranie repo
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-    # 2️⃣ Instalacja Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 20
+        node-version: '20'
 
-    # 3️⃣ Instalacja zależności projektu
-    - name: Install project dependencies
+    - name: Install dependencies
       run: npm install
 
-    # 4️⃣ Instalacja Capacitor CLI i Core
-    - name: Install Capacitor
-      run: npm install @capacitor/core @capacitor/cli --save-dev
+    - name: Install Capacitor CLI
+      run: npm install @capacitor/cli @capacitor/core --save
 
-    # 5️⃣ Budowa frontend Vite
-    - name: Build Vite
+    - name: Build Vite project
       run: npm run build
 
-    # 6️⃣ Kopiowanie build do Androida
-    - name: Copy build to Android
+    - name: Initialize Capacitor if needed
       run: |
-        npx cap copy
-        npx cap sync android
+        npx cap init "AAAApp" "com.example.aaa" --web-dir=dist || echo "Already initialized"
 
-    # 7️⃣ Sprawdzenie zawartości www
-    - name: Check www folder
-      run: ls -R android/app/src/main/assets/www
+    - name: Add Android platform if missing
+      run: |
+        npx cap add android || echo "Android platform exists"
 
-    # 8️⃣ Instalacja JDK 11
-    - name: Setup JDK
+    - name: Sync Capacitor
+      run: npx cap sync android
+
+    - name: Set up JDK
       uses: actions/setup-java@v3
       with:
+        java-version: '17'
         distribution: 'temurin'
-        java-version: '11'
 
-    # 9️⃣ Budowa APK release
     - name: Build APK
-      run: |
-        cd android
-        ./gradlew assembleRelease
+      working-directory: android
+      run: ./gradlew assembleDebug
 
-    # 🔍 Znalezienie APK (signed lub unsigned)
-    - name: Find APK file
-      run: |
-        find android/app/build/outputs/apk/ -type f -name "*.apk"
-
-    # 🔄 Upload APK jako artefakt
     - name: Upload APK
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
-        name: app-release.apk
-        path: android/app/build/outputs/apk/**/*.apk
+        name: app-debug.apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
