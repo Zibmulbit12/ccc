@@ -10,45 +10,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Pobranie repo
+    # 1️⃣ Pobranie repo
     - uses: actions/checkout@v3
 
-    # Instalacja Node.js
+    # 2️⃣ Instalacja Node.js
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: 20
 
-    # Instalacja zależności frontend
-    - name: Install frontend dependencies
+    # 3️⃣ Instalacja zależności projektu
+    - name: Install project dependencies
       run: npm install
 
-    # Build Vite
+    # 4️⃣ Instalacja Capacitor CLI i Core
+    - name: Install Capacitor
+      run: npm install @capacitor/core @capacitor/cli --save-dev
+
+    # 5️⃣ Budowa frontend Vite
     - name: Build Vite
       run: npm run build
 
-    # Instalacja Capacitor CLI
-    - name: Install Capacitor CLI
-      run: npm install @capacitor/core @capacitor/cli
-
-    # Skopiowanie build do Androida
+    # 6️⃣ Kopiowanie build do Androida
     - name: Copy build to Android
-      run: npx cap copy android
+      run: |
+        npx cap copy
+        npx cap sync android
 
-    # Instalacja JDK 11
+    # 7️⃣ Instalacja JDK 11
     - name: Setup JDK
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
         java-version: '11'
 
-    # Build APK Android
+    # 8️⃣ Budowa APK release
     - name: Build APK
       run: |
         cd android
         ./gradlew assembleRelease
 
-    # Upload APK jako artefakt
+    # 9️⃣ Upload APK jako artefakt
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
